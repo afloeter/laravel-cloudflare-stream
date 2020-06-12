@@ -69,11 +69,7 @@ class CloudflareStream
             $parameters = array_merge($parameters, $customParameters);
         }
 
-        // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream?' . http_build_query($parameters));
-
-        // Return result
-        return $response->getBody()->getContents();
+        return $this->request('accounts/' . $this->accountId . '/stream?' . http_build_query($parameters))->getBody()->getContents();
     }
 
     /**
@@ -85,11 +81,7 @@ class CloudflareStream
      */
     public function video(string $uid)
     {
-        // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid);
-
-        // Return result
-        return $response->getBody()->getContents();
+        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid)->getBody()->getContents();
     }
 
     /**
@@ -135,18 +127,14 @@ class CloudflareStream
      */
     public function delete(string $uid)
     {
-        // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'delete');
-
-        // Return result
-        return $response->getBody()->getContents();
+        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'delete')->getBody()->getContents();
     }
 
     /**
      * Get meta data for a specific video.
      *
      * @param string $uid
-     * @return mixed
+     * @return array
      * @throws GuzzleException
      */
     public function getMeta(string $uid)
@@ -254,7 +242,7 @@ class CloudflareStream
      *
      * @param string $uid
      * @param bool $useSignedToken
-     * @return mixed
+     * @return string
      * @throws GuzzleException
      * @throws NoPrivateKeyOrTokenException
      */

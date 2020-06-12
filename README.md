@@ -118,6 +118,7 @@ It's planned to add support to...
     * Create a video and get authenticated direct upload URL 
 * **Create and revoke signing keys.**
 * **Add, get and remove `.vtt` caption files.**
+* **Set, get and remove allowed origins
 
 ## Changelog
 
