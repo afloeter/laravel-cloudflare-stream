@@ -33,14 +33,14 @@ class CloudflareStream
     {
         if (empty($accountId) || empty($authKey) || empty($authEMail)) {
             throw new NoCredentialsException();
-        } else {
-            $this->accountId = $accountId;
-            $this->authKey = $authKey;
-            $this->authEMail = $authEMail;
-            $this->guzzle = new Client([
-                'base_uri' => 'https://api.cloudflare.com/client/v4/'
-            ]);
         }
+
+        $this->accountId = $accountId;
+        $this->authKey = $authKey;
+        $this->authEMail = $authEMail;
+        $this->guzzle = new Client([
+            'base_uri' => 'https://api.cloudflare.com/client/v4/'
+        ]);
 
         if (!empty($privateKey) && !empty($privateKeyToken)) {
             $this->privateKeyId = $privateKey;
@@ -70,7 +70,7 @@ class CloudflareStream
         }
 
         // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream' . '?' . http_build_query($parameters));
+        $response = $this->request('accounts/' . $this->accountId . '/stream?' . http_build_query($parameters));
 
         // Return result
         return $response->getBody()->getContents();
@@ -98,31 +98,28 @@ class CloudflareStream
      * @param string $uid
      * @param bool $addControls
      * @param bool $useSignedToken
-     * @return string|string[]
+     * @return string
      * @throws NoPrivateKeyOrTokenException|GuzzleException
      */
     public function embed(string $uid, bool $addControls = false, bool $useSignedToken = true)
     {
-        // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid . '/embed');
+        $embed = $this->request('accounts/' . $this->accountId . '/stream/' . $uid . '/embed')->getBody();
+        $requireSignedToken = false;
 
-        // Embed
-        $embed = $response->getBody()->getContents();
+        // Require signed token?
+        if ($useSignedToken) {
+            $video = json_decode($this->video($uid), true);
+            $requireSignedToken = $video['result']['requireSignedURLs'];
+        }
 
         // Add controls attribute?
         if ($addControls) {
-            $embed = str_replace('<stream src="' . $uid . '"', '<stream src="' . $this->getSignedToken($uid) . '" controls', $embed);
+            return str_replace('src="' . $uid . '"', 'src="' . ($useSignedToken && $requireSignedToken ? $this->getSignedToken($uid) : $uid) . '" controls', $embed);
         }
 
         // Signed URL necessary?
-        if ($useSignedToken) {
-            $video = json_decode($this->video($uid), true);
-
-            // Replace uid with signed token
-            if ($video['result']['requireSignedURLs'] == true) {
-                $embed = str_replace('src="' . $uid . '"', 'src="' . $this->getSignedToken($uid) . '"', $embed);
-            }
-
+        if ($useSignedToken && $requireSignedToken) {
+            return str_replace('src="' . $uid . '"', 'src="' . $this->getSignedToken($uid) . '"', $embed);
         }
 
         // Return embed code
@@ -156,8 +153,7 @@ class CloudflareStream
     {
 
         // Get all data
-        $video = $this->video($uid);
-        $data = json_decode($video, true);
+        $data = json_decode($this->video($uid), true);
 
         // Return meta data
         return $data['result']['meta'];
@@ -207,10 +203,8 @@ class CloudflareStream
         }
 
         // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', $meta);
+        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', $meta)->getBody()->getContents();
 
-        // Return result
-        return $response->getBody()->getContents();
     }
 
     /**
@@ -249,15 +243,10 @@ class CloudflareStream
      */
     public function setSignedURLs(string $uid, bool $required)
     {
-
-        // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', [
+        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', [
             'uid' => $uid,
             'requireSignedURLS' => $required
-        ]);
-
-        // Return result
-        return $response->getBody()->getContents();
+        ])->getBody()->getContents();
     }
 
     /**
