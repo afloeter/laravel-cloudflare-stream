@@ -1,0 +1,23 @@
+{
+    "name": "afloeter/laravel-cloudflare-stream",
+    "description": "Manage the Cloudflare Stream API with ease.",
+    "authors": [
+        {
+            "name": "Alexander Flöter",
+            "email": "af@mediaguy.de"
+        }
+    ],
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "AFloeter\\CloudflareStream\\": "src/"
+        }
+    },
+    "require": {
+        "ext-json": "*",
+        "firebase/php-jwt": "^5.2",
+        "guzzlehttp/guzzle": "^6.3",
+        "laravel/framework": "^7.0"
+    }
+}
