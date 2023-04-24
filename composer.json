@@ -18,6 +18,6 @@
         "ext-json": "*",
         "firebase/php-jwt": "^5.2",
         "guzzlehttp/guzzle": "^7.2 || ^6.3",
-        "laravel/framework": "^9.0 || ^8.0"
+        "laravel/framework": "^10.0 || ^9.0 || ^8.0"
     }
 }
