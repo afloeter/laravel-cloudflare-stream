@@ -12,7 +12,7 @@ class CloudflareStreamServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/config/cloudflare-stream.php' => config_path('cloudflare-stream.php'),
+            __DIR__.'/config/cloudflare-stream.php' => config_path('cloudflare-stream.php'),
         ]);
     }
 

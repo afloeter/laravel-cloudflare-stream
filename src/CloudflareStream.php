@@ -13,20 +13,23 @@ use Psr\Http\Message\ResponseInterface;
 class CloudflareStream
 {
     private $accountId;
+
     private $authKey;
+
     private $authEMail;
+
     private $privateKeyId;
+
     private $privateKeyToken;
+
     private $guzzle;
 
     /**
      * CloudflareStream constructor.
      *
-     * @param string $accountId
-     * @param string $authKey
-     * @param string $authEMail
-     * @param null $privateKey
-     * @param null $privateKeyToken
+     * @param  null  $privateKey
+     * @param  null  $privateKeyToken
+     *
      * @throws NoCredentialsException
      */
     public function __construct(string $accountId, string $authKey, string $authEMail, $privateKey = null, $privateKeyToken = null)
@@ -39,10 +42,10 @@ class CloudflareStream
         $this->authKey = $authKey;
         $this->authEMail = $authEMail;
         $this->guzzle = new Client([
-            'base_uri' => 'https://api.cloudflare.com/client/v4/'
+            'base_uri' => 'https://api.cloudflare.com/client/v4/',
         ]);
 
-        if (!empty($privateKey) && !empty($privateKeyToken)) {
+        if (! empty($privateKey) && ! empty($privateKeyToken)) {
             $this->privateKeyId = $privateKey;
             $this->privateKeyToken = $privateKeyToken;
         }
@@ -51,8 +54,9 @@ class CloudflareStream
     /**
      * Get a list of videos.
      *
-     * @param array $customParameters
+     * @param  array  $customParameters
      * @return string
+     *
      * @throws GuzzleException
      */
     public function list($customParameters = [])
@@ -61,41 +65,39 @@ class CloudflareStream
         $parameters = [
             'include_counts' => true,
             'limit' => 1000,
-            'asc' => false
+            'asc' => false,
         ];
 
         // Set custom parameters
-        if (!empty($customParameters) && is_array($customParameters)) {
+        if (! empty($customParameters) && is_array($customParameters)) {
             $parameters = array_merge($parameters, $customParameters);
         }
 
-        return $this->request('accounts/' . $this->accountId . '/stream?' . http_build_query($parameters))->getBody()->getContents();
+        return $this->request('accounts/'.$this->accountId.'/stream?'.http_build_query($parameters))->getBody()->getContents();
     }
 
     /**
      * Fetch details of a single video.
      *
-     * @param string $uid
      * @return string
+     *
      * @throws GuzzleException
      */
     public function video(string $uid)
     {
-        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid)->getBody()->getContents();
+        return $this->request('accounts/'.$this->accountId.'/stream/'.$uid)->getBody()->getContents();
     }
 
     /**
      * Get embed code. Could be returned with signed token if necessary.
      *
-     * @param string $uid
-     * @param bool $addControls
-     * @param bool $useSignedToken
      * @return string
+     *
      * @throws NoPrivateKeyOrTokenException|GuzzleException
      */
     public function embed(string $uid, bool $addControls = false, bool $useSignedToken = true)
     {
-        $embed = $this->request('accounts/' . $this->accountId . '/stream/' . $uid . '/embed')->getBody();
+        $embed = $this->request('accounts/'.$this->accountId.'/stream/'.$uid.'/embed')->getBody();
         $requireSignedToken = false;
 
         // Require signed token?
@@ -106,12 +108,12 @@ class CloudflareStream
 
         // Add controls attribute?
         if ($addControls) {
-            return str_replace('src="' . $uid . '"', 'src="' . ($useSignedToken && $requireSignedToken ? $this->getSignedToken($uid) : $uid) . '" controls', $embed);
+            return str_replace('src="'.$uid.'"', 'src="'.($useSignedToken && $requireSignedToken ? $this->getSignedToken($uid) : $uid).'" controls', $embed);
         }
 
         // Signed URL necessary?
         if ($useSignedToken && $requireSignedToken) {
-            return str_replace('src="' . $uid . '"', 'src="' . $this->getSignedToken($uid) . '"', $embed);
+            return str_replace('src="'.$uid.'"', 'src="'.$this->getSignedToken($uid).'"', $embed);
         }
 
         // Return embed code
@@ -121,20 +123,20 @@ class CloudflareStream
     /**
      * Delete video.
      *
-     * @param string $uid
      * @return string
+     *
      * @throws GuzzleException
      */
     public function delete(string $uid)
     {
-        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'delete')->getBody()->getContents();
+        return $this->request('accounts/'.$this->accountId.'/stream/'.$uid, 'delete')->getBody()->getContents();
     }
 
     /**
      * Get meta data for a specific video.
      *
-     * @param string $uid
      * @return array
+     *
      * @throws GuzzleException
      */
     public function getMeta(string $uid)
@@ -150,20 +152,19 @@ class CloudflareStream
     /**
      * Set meta data for a specific video.
      *
-     * @param string $uid
-     * @param array $meta
      * @return string
+     *
      * @throws GuzzleException
      */
     public function setMeta(string $uid, array $meta)
     {
         // Merge meta data
         $meta = [
-            'meta' => array_merge($this->getMeta($uid), $meta)
+            'meta' => array_merge($this->getMeta($uid), $meta),
         ];
 
         // Request
-        $response = $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', $meta);
+        $response = $this->request('accounts/'.$this->accountId.'/stream/'.$uid, 'post', $meta);
 
         // Return result
         return $response->getBody()->getContents();
@@ -172,9 +173,8 @@ class CloudflareStream
     /**
      * Remove meta data by key.
      *
-     * @param string $uid
-     * @param string $metaKey
      * @return string
+     *
      * @throws GuzzleException
      */
     public function removeMeta(string $uid, string $metaKey)
@@ -182,7 +182,7 @@ class CloudflareStream
 
         // Merge meta data
         $meta = [
-            'meta' => array_merge($this->getMeta($uid))
+            'meta' => array_merge($this->getMeta($uid)),
         ];
 
         // Remove key
@@ -191,29 +191,29 @@ class CloudflareStream
         }
 
         // Request
-        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', $meta)->getBody()->getContents();
+        return $this->request('accounts/'.$this->accountId.'/stream/'.$uid, 'post', $meta)->getBody()->getContents();
 
     }
 
     /**
      * Get name of a video.
      *
-     * @param string $uid
      * @return string
+     *
      * @throws GuzzleException
      */
     public function getName(string $uid)
     {
         $meta = $this->getMeta($uid);
+
         return $meta['name'];
     }
 
     /**
      * Rename a video.
      *
-     * @param string $uid
-     * @param string $name
      * @return string
+     *
      * @throws GuzzleException
      */
     public function setName(string $uid, string $name)
@@ -224,25 +224,24 @@ class CloudflareStream
     /**
      * Set whether a specific video requires signed URLs or not.
      *
-     * @param string $uid
-     * @param bool $required
      * @return string
+     *
      * @throws GuzzleException
      */
     public function setSignedURLs(string $uid, bool $required)
     {
-        return $this->request('accounts/' . $this->accountId . '/stream/' . $uid, 'post', [
+        return $this->request('accounts/'.$this->accountId.'/stream/'.$uid, 'post', [
             'uid' => $uid,
-            'requireSignedURLS' => $required
+            'requireSignedURLS' => $required,
         ])->getBody()->getContents();
     }
 
     /**
      * Get playback URLs of a specific video.
      *
-     * @param string $uid
-     * @param bool $useSignedToken
+     * @param  bool  $useSignedToken
      * @return string
+     *
      * @throws GuzzleException
      * @throws NoPrivateKeyOrTokenException
      */
@@ -270,9 +269,8 @@ class CloudflareStream
     /**
      * Get signed token for a video.
      *
-     * @param string $uid
-     * @param int $addHours
      * @return string
+     *
      * @throws NoPrivateKeyOrTokenException
      */
     public function getSignedToken(string $uid, int $addHours = 4)
@@ -284,15 +282,15 @@ class CloudflareStream
         return JWT::encode([
             'kid' => $this->privateKeyId,
             'sub' => $uid,
-            "exp" => time() + ($addHours * 60 * 60)
+            'exp' => time() + ($addHours * 60 * 60),
         ], base64_decode($this->privateKeyToken), 'RS256');
     }
 
     /**
      * Get width and height of a video.
      *
-     * @param string $uid
      * @return string
+     *
      * @throws GuzzleException
      */
     public function getDimensions(string $uid)
@@ -307,10 +305,10 @@ class CloudflareStream
     /**
      * Request wrapper function.
      *
-     * @param string $endpoint
-     * @param string $method
-     * @param array $data
+     * @param  string  $method
+     * @param  array  $data
      * @return ResponseInterface
+     *
      * @throws GuzzleException
      */
     private function request(string $endpoint, $method = 'get', $data = [])
@@ -319,14 +317,14 @@ class CloudflareStream
         $headers = [
             'X-Auth-Key' => $this->authKey,
             'X-Auth-Email' => $this->authEMail,
-            'Content-Type' => 'application/json'
+            'Content-Type' => 'application/json',
         ];
 
         // Define options for post request method...
-        if (count($data) && $method === "post") {
+        if (count($data) && $method === 'post') {
             $options = [
                 'headers' => $headers,
-                RequestOptions::JSON => $data
+                RequestOptions::JSON => $data,
             ];
         } // ...or define options for all other request methods
         else {
